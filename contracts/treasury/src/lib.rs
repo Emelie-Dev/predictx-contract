@@ -95,11 +95,13 @@ impl Treasury {
         if !env.storage().instance().has(&DataKey::Admin) {
             return Err(PredictXError::NotInitialized);
         }
-        admin.require_auth();
+        from.require_auth();
+
+        let new_balance = get_balance(&env, &from) + amount;
         env.storage()
-            .instance()
-            .set(&DataKey::TokenAddress, &token_address);
-        Ok(())
+            .persistent()
+            .set(&DataKey::Balance(from), &new_balance);
+        Ok(new_balance)
     }
 
     /// Transfer fees from an authorized address into this contract and record them.
@@ -196,23 +198,16 @@ mod test {
 
     #[test]
     fn deposit_tracks_balance() {
-        let env = Env::default();
-        env.mock_all_auths();
+        let (env, _, client, _, _) = setup();
+        let user = Address::generate(&env);
 
-        let admin = Address::generate(&env);
-        let token_admin = Address::generate(&env);
-        let token_contract = env.register_stellar_asset_contract_v2(token_admin);
-        let contract_id = env.register(Treasury, ());
-        let client = TreasuryClient::new(&env, &contract_id);
-        client.initialize(&admin);
-        client.set_token(&admin, &token_contract.address());
-
-        (env, contract_id, client, token_contract.address())
+        assert_eq!(client.deposit(&user, &100_i128), 100_i128);
+        assert_eq!(client.balance(&user), 100_i128);
     }
 
     #[test]
     fn deposit_fees_transfers_tokens_and_tracks_balance() {
-        let (env, contract_id, client, token_address) = setup();
+        let (env, contract_id, client, _, token_address) = setup();
         let user = Address::generate(&env);
         let treasury_address = contract_id;
         let asset = token::StellarAssetClient::new(&env, &token_address);
@@ -227,7 +222,7 @@ mod test {
 
     #[test]
     fn deposit_fees_rejects_zero_and_negative_amounts() {
-        let (env, _, client, _) = setup();
+        let (env, _, client, _, _) = setup();
         let user = Address::generate(&env);
 
         assert_eq!(
@@ -242,7 +237,7 @@ mod test {
 
     #[test]
     fn failed_transfer_does_not_update_recorded_balance() {
-        let (env, contract_id, client, token_address) = setup();
+        let (env, contract_id, client, _, token_address) = setup();
         let user = Address::generate(&env);
         let token_client = token::Client::new(&env, &token_address);
 
