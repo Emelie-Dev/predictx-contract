@@ -31,6 +31,7 @@ fn get_market(env: &Env) -> Result<Address, PredictXError> {
         .ok_or(PredictXError::NotInitialized)
 }
 
+#[allow(dead_code)]
 fn get_oracle(env: &Env) -> Result<Address, PredictXError> {
     env.storage()
         .instance()

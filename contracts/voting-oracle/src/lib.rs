@@ -299,8 +299,7 @@ extern crate std;
 
 #[cfg(test)]
 mod test {
-    use super::*;
-    use soroban_sdk::testutils::Address as _;
+    use super::*; 
     use soroban_sdk::testutils::{Address as _, Ledger};
 
     #[test]
