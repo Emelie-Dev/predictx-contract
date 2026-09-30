@@ -11,6 +11,7 @@ pub struct Treasury;
 enum DataKey {
     Admin,
     Market,
+    Oracle,
     TokenAddress,
     Balance(Address),
     VoterRewardsFunded(u64),

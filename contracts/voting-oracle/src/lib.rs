@@ -301,6 +301,7 @@ extern crate std;
 mod test {
     use super::*;
     use soroban_sdk::testutils::Address as _;
+    use soroban_sdk::testutils::{Address as _, Ledger};
 
     #[test]
     fn set_and_get_status() {
